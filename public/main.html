@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Quiz</title>
+</head>
+<body>
+<button id="createQuizButton">Create Quiz</button>
+<button onclick="checkQuiz()">Attend Quiz</button>
+<button onclick = "enquirequiz()">Enquire a Quiz</button>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get('username');
+    document.getElementById("createQuizButton").addEventListener("click", function() {
+        window.location.href = `quizcreate.html?username=${username}`;
+    });
+    function checkQuiz() {
+        window.location.href = `quiz.html?username=${username}`;
+    }
+    function enquirequiz() {
+        window.location.href = `eqquiz.html?username=${username}`;
+    }
+</script>
+
+</body>
+</html>

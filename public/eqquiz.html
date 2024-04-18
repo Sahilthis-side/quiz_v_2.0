@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enquire Quiz</title>
+</head>
+<body>
+    <h2>Enquire Quiz</h2>
+    <form id="enquireForm">
+        <label for="quizCode">Enter Quiz Code:</label>
+        <input type="text" id="quizCode" name="quizCode" required><br><br>
+        <button type="button" onclick="enquireQuiz()">Enquire</button>
+    </form>
+
+    <!-- Container to display attendee data -->
+    <div id="attendeeContainer"></div>
+
+    <script>
+        function enquireQuiz() {
+            const quizCode = document.getElementById('quizCode').value;
+            fetch(`/enquireQuiz/${quizCode}`)
+            .then(response => response.text())
+            .then(data => {
+                // Display attendee data in the container
+                document.getElementById('attendeeContainer').innerHTML = data;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to fetch attendee data');
+            });
+        }
+    </script>
+</body>
+</html>

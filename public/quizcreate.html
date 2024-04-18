@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Quiz</title>
+</head>
+<body>
+<h1 id="quizCodeHeading">Code of Quiz: <span id="quizCode" style="display: none;"></span></h1> <!-- Heading for displaying the unique code -->
+<form id="quizForm">
+    <label for="question">Question:</label>
+    <input type="text" id="question" name="question"><br><br>
+
+    <label for="option1">Option 1:</label>
+    <input type="text" id="option1" name="option1"><br><br>
+
+    <label for="option2">Option 2:</label>
+    <input type="text" id="option2" name="option2"><br><br>
+
+    <label for="option3">Option 3:</label>
+    <input type="text" id="option3" name="option3"><br><br>
+
+    <label for="option4">Option 4:</label>
+    <input type="text" id="option4" name="option4"><br><br>
+
+    <label for="correctAnswer">Correct Answer:</label>
+    <input type="text" id="correctAnswer" name="correctAnswer"><br><br>
+
+    <button type="button" onclick="addQuestion()">Add More</button>
+    <button type="button" onclick="endQuiz()">End Quiz</button>
+</form>
+
+<div id="okButton" style="display: none;">
+    <button type="button" onclick="redirectToIndex()">OK</button>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const username = params.get('username');
+let questions = [];
+let options1 = [];
+let options2 = [];
+let options3 = [];
+let options4 = [];
+let correctAnswers = [];
+let quizCode = ""; // Variable to store the generated quiz code
+
+document.getElementById("quizCode").innerText = generateUniqueCode(); // Display quiz code in the heading
+
+function generateUniqueCode() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let code = '';
+    for (let i = 0; i < 10; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return code;
+}
+
+function checkFields() {
+    const question = document.getElementById("question").value;
+    const option1 = document.getElementById("option1").value;
+    const option2 = document.getElementById("option2").value;
+    const option3 = document.getElementById("option3").value;
+    const option4 = document.getElementById("option4").value;
+    const correctAnswer = document.getElementById("correctAnswer").value;
+
+    const addQuestionBtn = document.getElementById("addQuestionBtn");
+    const endQuizBtn = document.getElementById("endQuizBtn");
+
+    if (question && option1 && option2 && option3 && option4 && correctAnswer) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+function addQuestion() {
+    if(checkFields()){
+        const question = document.getElementById("question").value;
+        const option1 = document.getElementById("option1").value;
+        const option2 = document.getElementById("option2").value;
+        const option3 = document.getElementById("option3").value;
+        const option4 = document.getElementById("option4").value;
+        const correctAnswer = document.getElementById("correctAnswer").value;
+
+        questions.push(question);
+        options1.push(option1);
+        options2.push(option2);
+        options3.push(option3);
+        options4.push(option4);
+        correctAnswers.push(correctAnswer);
+
+        document.getElementById("quizForm").reset();
+    }
+    else{
+        alert("fill all the fields");
+    }
+}
+
+function endQuiz() {
+    if(checkFields()){
+        addQuestion(); // Add the last question
+        const quizData = [questions.join(','), options1.join(','), options2.join(','), options3.join(','), options4.join(','), correctAnswers.join(',')];
+        fetch('/generateQuiz', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quizData: quizData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.message);
+            quizCode = data.filename; // Assign the filename returned from server
+            document.getElementById("quizCode").innerText = quizCode.slice(0,-4); // Update heading with filename
+            document.getElementById("okButton").style.display = "block"; // Show the OK button
+            document.getElementById("quizCode").style.display = "block"; // Show the OK button
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    else{
+        alert("fill all the fields");
+    }
+}
+
+function redirectToIndex() {
+    window.location.href = `main.html?username=${username}`; // Redirect to index.html after clicking OK
+}
+</script>
+
+</body>
+</html>

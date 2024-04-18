@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz</title>
+<style>
+    /* Style for quiz container */
+    #quizContainer {
+        display: none;
+    }
+</style>
+</head>
+<body>
+<h1>Quiz</h1>
+
+<!-- Input field for entering quiz code -->
+<input type="text" id="quizCodeInput" placeholder="Enter Quiz Code">
+<button onclick="fetchQuizData()">Start Quiz</button>
+
+<!-- Quiz questions and options will be displayed here -->
+<div id="quizContainer"></div>
+
+<!-- Button to submit quiz -->
+<button id="submitQuizButton" onclick="submitQuiz()">Submit Quiz</button>
+
+<script>
+let quizData; // Declare quizData globally
+const params = new URLSearchParams(window.location.search);
+const username = params.get('username');
+let quizCode;
+// Function to fetch quiz data based on the code provided
+function fetchQuizData() { 
+    quizCode = document.getElementById('quizCodeInput').value;
+    console.log(quizCode);
+    fetch(`/quiz/${quizCode}`)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Quiz not found');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Set quizData and display quiz
+        quizData = data;
+        displayQuiz();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Quiz not found');
+    });
+}
+
+// Function to display quiz questions and options
+function displayQuiz() {
+    document.getElementById('quizCodeInput').style.display = 'none';
+    document.getElementById('submitQuizButton').style.display = 'block';
+    document.getElementById('quizContainer').style.display = 'block';
+
+    let questions = quizData.questions.split(',');
+    let option1 = quizData.option1.split(',');
+    let option2 = quizData.option2.split(',');
+    let option3 = quizData.option3.split(',');
+    let option4 = quizData.option4.split(',');
+
+    let quizContainer = document.getElementById('quizContainer');
+    let html = '';
+    for (let i = 0; i < questions.length; i++) {
+        html += `<p>${questions[i]}</p>`;
+        html += `<input type="radio" name="question${i}" value="${option1[i]}">${option1[i]}<br>`;
+        html += `<input type="radio" name="question${i}" value="${option2[i]}">${option2[i]}<br>`;
+        html += `<input type="radio" name="question${i}" value="${option3[i]}">${option3[i]}<br>`;
+        html += `<input type="radio" name="question${i}" value="${option4[i]}">${option4[i]}<br>`;
+    }
+    quizContainer.innerHTML = html;
+}
+
+// Function to submit quiz
+function submitQuiz() {
+    let score = 0;
+    let questionsCount = quizData.questions.split(',').length;
+    let questions = document.querySelectorAll('[name^="question"]');
+    questions.forEach((question, index) => {
+        let selectedOption = document.querySelector(`[name="question${index}"]:checked`);
+        if (selectedOption && index < questionsCount) {
+            if (selectedOption.value === quizData.correctAnswer.split(',')[index]) {
+                score++;
+            }
+        }
+    });
+    alert(`Your score: ${score}/${questionsCount}`);
+    const attendeeData = {
+        username: username,
+        score: score
+    };
+
+    // Convert attendeeData to JSON
+    const jsonData = JSON.stringify(attendeeData);
+
+    // Send POST request to server to write data to file
+    fetch(`/attendQuiz/${quizCode}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: jsonData
+    })
+    .then(response => {
+        if (response.ok) {
+            // Redirect to main.html after successful submission
+            window.location.href = `main.html?username=${username}`;
+        } else {
+            throw new Error('Failed to submit quiz');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to submit quiz');
+    });
+    // Redirect to index.html after quiz submission
+    window.location.href = `main.html?username=${username}`;
+}
+
+</script>
+
+</body>
+</html>
